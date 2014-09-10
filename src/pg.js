@@ -13,7 +13,7 @@ function processCode(codeText) {
     codeLines.unshift('');
 
     outputFile = '';
-    lastSavedLoc = { line: 1, column: 0 };
+    lastSavedLoc = 'EOF';
 
     var ast = esprima.parse(codeText, {
         loc: true,
@@ -22,10 +22,10 @@ function processCode(codeText) {
 
     parseNode(ast, null);
 
-    outputFile += getFragment(codeLines, {
-        start: lastSavedLoc,
-        end: 'EOF'
-    });
+    outputFile = getFragment(codeLines, {
+        start: { line: 1, column: 0 },
+        end: lastSavedLoc
+    }) + outputFile;
 
     return outputFile;
 }
@@ -42,7 +42,7 @@ function revert(codeText) {
 
 function parseNode(node, parent) {
     if (Array.isArray(node)) {
-        node.forEach(function(el) {
+        _.forEachRight(node, function(el) {
             parseNode(el);
         });
     }
@@ -51,30 +51,21 @@ function parseNode(node, parent) {
         return;
     }
 
-    if (isRevert) {
-        if (revertNode(node)) {
-            return;
-        }
-    } else {
-        if (processNode(node, parent)) {
-            return;
-        }
-    }
-
     for (var prop in node) {
         if (node.hasOwnProperty(prop) && prop !== 'type' && prop !== 'loc') {
             parseNode(node[prop], node);
         }
     }
+
+    if (isRevert) {
+        revertNode(node);
+    } else {
+        processNode(node, parent);
+    }
 }
 
 function processNode(node, parent) {
     if (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression') {
-
-        outputFile += getFragment(codeLines, {
-            start: lastSavedLoc,
-            end: node.loc.start
-        });
 
         var functionDeclaration = getFragment(codeLines, {
             start: node.loc.start,
@@ -109,16 +100,12 @@ function processNode(node, parent) {
             "console.log('=== PG:Call " + funcName + "', arguments);" +
             functionDeclaration.substr(i + 1);
 
-        outputFile += newFunctionDeclaration;
-
-        outputFile += getFragment(codeLines, {
+        outputFile = newFunctionDeclaration + getFragment(codeLines, {
             start: node.body.body[0].loc.start,
-            end: node.loc.end
-        });
+            end: lastSavedLoc
+        }) + outputFile;
 
-        lastSavedLoc = node.loc.end;
-
-        return true;
+        lastSavedLoc = node.loc.start;
     }
 }
 
@@ -132,14 +119,17 @@ function revertNode(node) {
         /^=== PG:Call/.test(node.arguments[0].value)
         ) {
 
-        outputFile += getFragment(codeLines, {
-            start: lastSavedLoc,
-            end: node.loc.start
-        });
+        outputFile = getFragment(codeLines, {
+            start: {
+                line: node.loc.end.line,
+                column: node.loc.end.column + 1
+            },
+            end: lastSavedLoc
+        }) + outputFile;
 
         lastSavedLoc = {
-            line: node.loc.end.line,
-            column: node.loc.end.column + 1
+            line: node.loc.start.line,
+            column: node.loc.start.column
         };
     }
 }
