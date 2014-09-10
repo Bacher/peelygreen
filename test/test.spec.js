@@ -11,6 +11,8 @@ describe('positive cases', function() {
 
     makeTests('texts');
 
+    makeTests('revert')
+
 });
 
 function makeTests(directory) {
@@ -25,11 +27,23 @@ function makeTests(directory) {
 
 function makeTest(directory, name) {
     it(name, function() {
-        var code = fs.readFileSync(TEST_PATH + '/' + directory + '/' + name).toString();
-        var expectCode = fs.readFileSync(TEST_PATH + '/' + directory + '/' + name + '_e.js').toString();
 
-        var newCode = pg.process(code);
+        var expectCode;
+        var newCode;
+
+        var code = fs.readFileSync(TEST_PATH + '/' + directory + '/' + name).toString();
+
+        if (directory === 'revert') {
+            expectCode = code;
+            newCode = pg.process(code);
+            newCode = pg.revert(newCode);
+
+        } else {
+            expectCode = fs.readFileSync(TEST_PATH + '/' + directory + '/' + name + '_e.js').toString();
+            newCode = pg.process(code);
+        }
 
         assert.equal(expectCode.trim(), newCode.trim());
+
     });
 }

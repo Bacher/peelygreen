@@ -6,6 +6,7 @@ var getFragment = require('./fragutils').getFragment;
 var codeLines;
 var lastSavedLoc;
 var outputFile;
+var isRevert;
 
 function processCode(codeText) {
     codeLines = codeText.split('\n');
@@ -19,7 +20,7 @@ function processCode(codeText) {
         raw: true
     });
 
-    parseNode(ast);
+    parseNode(ast, null);
 
     outputFile += getFragment(codeLines, {
         start: lastSavedLoc,
@@ -29,8 +30,17 @@ function processCode(codeText) {
     return outputFile;
 }
 
-function parseNode(node, parent) {
+function process(codeText) {
+    return processCode(codeText);
+}
 
+function revert(codeText) {
+    isRevert = true;
+
+    return processCode(codeText);
+}
+
+function parseNode(node, parent) {
     if (Array.isArray(node)) {
         _.forEachRight(node, function(el) {
             parseNode(el);
@@ -41,15 +51,32 @@ function parseNode(node, parent) {
         return;
     }
 
+    if (isRevert) {
+        if (revertNode(node)) {
+            return;
+        }
+    } else {
+        if (processNode(node, parent)) {
+            return;
+        }
+    }
+
+    for (var prop in node) {
+        if (node.hasOwnProperty(prop) && prop !== 'type' && prop !== 'loc') {
+            parseNode(node[prop], node);
+        }
+    }
+}
+
+function processNode(node, parent) {
     if (node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression') {
-        //console.log(getFragment(codeLines, node.loc));
 
         outputFile += getFragment(codeLines, {
             start: lastSavedLoc,
             end: node.loc.start
         });
 
-        var functionDeclaration =  getFragment(codeLines, {
+        var functionDeclaration = getFragment(codeLines, {
             start: node.loc.start,
             end: node.body.body[0].loc.start
         });
@@ -89,16 +116,33 @@ function parseNode(node, parent) {
 
         lastSavedLoc = node.loc.end;
 
-        return;
+        return true;
     }
+}
 
-    for (var prop in node) {
-        if (node.hasOwnProperty(prop) && prop !== 'type' && prop !== 'loc') {
-            parseNode(node[prop], node);
-        }
+function revertNode(node) {
+    if (node.type === 'CallExpression' &&
+        node.callee.type === 'MemberExpression' &&
+        node.callee.object.name === 'console' &&
+        node.callee.property.name === 'log' &&
+        node.arguments.length &&
+        node.arguments[0].type === 'Literal' &&
+        /^=== PG:Call/.test(node.arguments[0].value)
+        ) {
+
+        outputFile += getFragment(codeLines, {
+            start: lastSavedLoc,
+            end: node.loc.start
+        });
+
+        lastSavedLoc = {
+            line: node.loc.end.line,
+            column: node.loc.end.column + 1
+        };
     }
 }
 
 module.exports = {
-    process: processCode
+    process: process,
+    revert: revert
 };

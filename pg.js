@@ -8,8 +8,14 @@ var pg = require('./src/pg');
 var code = fs.readFileSync(args._[0]).toString();
 var newCode;
 
+//console.log(args);
+
 //try {
-    newCode = pg.process(code);
+    if (args.r) {
+        newCode = pg.revert(code);
+    } else {
+        newCode = pg.process(code);
+    }
 //} catch (e) {
 //    console.warn('  [PARSE ERROR]'.red);
 //    console.warn('    Error:'.red, e.message.red);
