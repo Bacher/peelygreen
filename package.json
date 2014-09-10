@@ -4,7 +4,7 @@
   "description": "Online monitoring for JS code execution",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test/*.spec.js"
   },
   "repository": {
     "type": "git",
@@ -23,5 +23,14 @@
   "bugs": {
     "url": "https://github.com/Bacher/peelygreen/issues"
   },
-  "homepage": "https://github.com/Bacher/peelygreen"
+  "homepage": "https://github.com/Bacher/peelygreen",
+  "dependencies": {
+    "colors": "^0.6.2",
+    "esprima": "^1.2.2",
+    "lodash": "^2.4.1",
+    "optimist": "^0.6.1"
+  },
+  "devDependencies": {
+    "mocha": "^1.21.4"
+  }
 }
