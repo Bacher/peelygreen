@@ -42,7 +42,7 @@ function revert(codeText) {
 
 function parseNode(node, parent) {
     if (Array.isArray(node)) {
-        _.forEachRight(node, function(el) {
+        node.forEach(function(el) {
             parseNode(el);
         });
     }
@@ -88,10 +88,12 @@ function processNode(node, parent) {
 
         var funcName = '';
 
-        if (parent.type === 'Property') {
-            funcName = parent.key.name;
-        } else if (parent.type === 'VariableDeclarator') {
-            funcName = parent.id.name;
+        if (parent) {
+            if (parent.type === 'Property') {
+                funcName = parent.key.name;
+            } else if (parent.type === 'VariableDeclarator') {
+                funcName = parent.id.name;
+            }
         }
 
         if (node.id) {
