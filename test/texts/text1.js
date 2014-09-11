@@ -1,7 +1,8 @@
-(function() {
 
-    window.arr.forEach(function(el) {
-        console.log(el);
-    })
+function myFunc(el) {
+    var pp = el + el + el;
+}
 
-});
+function myFunc2(el) {
+    var pp = el + el + el;
+}

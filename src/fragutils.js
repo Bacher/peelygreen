@@ -1,6 +1,10 @@
 
 module.exports = {
     getFragment: function(lines, loc) {
+        if (loc.start === loc.end || (loc.start.line === loc.end.line && loc.start.column === loc.end.column)) {
+            return '';
+        }
+
         var toEnd = (loc.end === 'EOF');
 
         var line1 = loc.start.line;

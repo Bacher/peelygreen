@@ -35,6 +35,7 @@ function makeTest(directory, name) {
 
         if (directory === 'revert') {
             expectCode = code;
+
             newCode = pg.process(code);
             newCode = pg.revert(newCode);
 
@@ -43,7 +44,7 @@ function makeTest(directory, name) {
             newCode = pg.process(code);
         }
 
-        assert.equal(expectCode.trim(), newCode.trim());
+        assert.equal(newCode.trim(), expectCode.trim());
 
     });
 }

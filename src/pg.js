@@ -2,16 +2,22 @@
 var esprima = require('esprima');
 var _ = require('lodash');
 var getFragment = require('./fragutils').getFragment;
+var fs = require('fs');
 
 var codeLines;
 var lastSavedLoc;
 var outputFile;
 var isRevert;
 
+var spyFunctions;
+var idCounter;
+
 function processCode(codeText) {
     codeLines = codeText.split('\n');
     codeLines.unshift('');
 
+    idCounter = 0;
+    spyFunctions = {};
     outputFile = '';
     lastSavedLoc = {
         line: 1,
@@ -29,6 +35,27 @@ function processCode(codeText) {
         start: lastSavedLoc,
         end: 'EOF'
     });
+
+    if (!isRevert) {
+        var funcSpiesDeclaration = '';
+        var isFirst = true;
+
+        for (var id in spyFunctions) {
+            if (!isFirst) {
+                funcSpiesDeclaration += ',';
+            }
+            funcSpiesDeclaration += id + ":'" + spyFunctions[id].funcName + "'";
+            isFirst = false;
+        }
+
+        if (!isFirst) {
+            var pgInjectionCode = String(fs.readFileSync('src/_pg-injection.js'));
+
+            pgInjectionCode = pgInjectionCode.replace(/['"]REPLACE_THIS['"]/, '{' + funcSpiesDeclaration + '}');
+
+            outputFile += pgInjectionCode;
+        }
+    }
 
     return outputFile;
 }
@@ -98,9 +125,15 @@ function processNode(node, parent) {
             funcName = '{unknown}';
         }
 
+        var id = ++idCounter;
+
+        spyFunctions[id] = {
+            funcName: funcName
+        };
+
         var newFunctionDeclaration =
             functionDeclaration.substr(0, i + 1) +
-            "console.log(new Date().toTimeString().split(' ')[0], '=== PG:Call " + funcName + "', arguments);" +
+            'pg(' + id + ',arguments);' +
             functionDeclaration.substr(i + 1);
 
         outputFile += getFragment(codeLines, {
@@ -115,13 +148,9 @@ function processNode(node, parent) {
 }
 
 function revertNode(node) {
-    if (node.type === 'CallExpression' &&
-        node.callee.type === 'MemberExpression' &&
-        node.callee.object.name === 'console' &&
-        node.callee.property.name === 'log' &&
-        node.arguments.length > 1 &&
-        node.arguments[1].type === 'Literal' &&
-        /^=== PG:Call/.test(node.arguments[1].value)
+    if (node.type === 'ExpressionStatement' &&
+        node.expression.type === 'CallExpression' &&
+        node.expression.callee.name === 'pg'
         ) {
 
         outputFile += getFragment(codeLines, {
@@ -133,6 +162,23 @@ function revertNode(node) {
             line: node.loc.end.line,
             column: node.loc.end.column + 1
         };
+
+    } else if (node.type === 'FunctionDeclaration' &&
+        node.id.name === 'pg') {
+
+        outputFile += getFragment(codeLines, {
+            start: lastSavedLoc,
+            end: node.loc.start
+        });
+
+        if (node.loc.end.line + 1 === codeLines.length) {
+            lastSavedLoc = 'EOF';
+        } else {
+            lastSavedLoc = {
+                line: node.loc.end.line + 1,
+                column: 0
+            };
+        }
     }
 }
 

@@ -28,7 +28,8 @@
     "colors": "^0.6.2",
     "esprima": "^1.2.2",
     "lodash": "^2.4.1",
-    "optimist": "^0.6.1"
+    "optimist": "^0.6.1",
+    "uglify-js": "^2.4.15"
   },
   "devDependencies": {
     "mocha": "^1.21.4"
