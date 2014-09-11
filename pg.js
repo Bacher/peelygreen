@@ -2,7 +2,10 @@
 
 require('colors');
 var fs = require('fs');
-var args = require('optimist').argv;
+var args = require('optimist')
+    .boolean(['r', 'i'])
+    .argv;
+
 var pg = require('./src/pg');
 
 var code = fs.readFileSync(args._[0]).toString();
