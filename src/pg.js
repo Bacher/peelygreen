@@ -97,7 +97,7 @@ function processNode(node, parent) {
 
         var newFunctionDeclaration =
             functionDeclaration.substr(0, i + 1) +
-            "console.log('=== PG:Call " + funcName + "', arguments);" +
+            "console.log(new Date().toTimeString().split(' ')[0], '=== PG:Call " + funcName + "', arguments);" +
             functionDeclaration.substr(i + 1);
 
         outputFile = newFunctionDeclaration + getFragment(codeLines, {
@@ -114,9 +114,9 @@ function revertNode(node) {
         node.callee.type === 'MemberExpression' &&
         node.callee.object.name === 'console' &&
         node.callee.property.name === 'log' &&
-        node.arguments.length &&
-        node.arguments[0].type === 'Literal' &&
-        /^=== PG:Call/.test(node.arguments[0].value)
+        node.arguments.length > 1 &&
+        node.arguments[1].type === 'Literal' &&
+        /^=== PG:Call/.test(node.arguments[1].value)
         ) {
 
         outputFile = getFragment(codeLines, {

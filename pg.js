@@ -24,6 +24,8 @@ var newCode;
 
 if (args.o) {
     fs.writeFileSync(args.o, newCode);
+} else if (args.i) {
+    fs.writeFileSync(args._[0], newCode);
 } else {
     process.stdout.write('' + newCode);
 }

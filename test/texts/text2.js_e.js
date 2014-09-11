@@ -1,5 +1,5 @@
 var a = {
-    lol: function originalName() {console.log('=== PG:Call lol (originalName)', arguments);
+    lol: function originalName() {console.log(new Date().toTimeString().split(' ')[0], '=== PG:Call lol (originalName)', arguments);
         var href = document.location.href;
     }
 };
