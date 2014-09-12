@@ -1,6 +1,6 @@
 {
   "name": "peelygreen",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Monitoring for JS code execution",
   "main": "src/pg.js",
   "bin": {
