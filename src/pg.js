@@ -3,6 +3,7 @@ var esprima = require('esprima');
 var _ = require('lodash');
 var getFragment = require('./fragutils').getFragment;
 var fs = require('fs');
+var path = require('path');
 
 var codeLines;
 var lastSavedLoc;
@@ -49,7 +50,7 @@ function processCode(codeText) {
         }
 
         if (!isFirst) {
-            var pgInjectionCode = String(fs.readFileSync('src/_pg-injection.js'));
+            var pgInjectionCode = String(fs.readFileSync(path.resolve(__dirname, '_pg-injection.js')));
 
             pgInjectionCode = pgInjectionCode.replace(/['"]REPLACE_THIS['"]/, '{' + funcSpiesDeclaration + '}');
 
