@@ -102,40 +102,6 @@ function processNode(node, parent) {
             end: node.body.body[0].loc.start
         });
 
-        var inComment = false;
-
-        for (var i = 0; i < functionDeclaration.length; ++i) {
-            if (inComment) {
-
-                if (inComment === 'line') {
-                    if (functionDeclaration[i] === '\n') {
-                        inComment = false;
-                    }
-                } else if (inComment === 'block') {
-                    if (functionDeclaration[i] === '*' && functionDeclaration[i + 1] === '/') {
-                        i++;
-                        inComment = false;
-                    }
-                }
-
-            } else {
-                if (functionDeclaration[i] === '{') {
-                    i++;
-                    break;
-                }
-
-                if (functionDeclaration[i] === '/' && functionDeclaration[i + 1] === '/') {
-                    i++;
-                    inComment = 'line';
-                }
-
-                if (functionDeclaration[i] === '/' && functionDeclaration[i + 1] === '*') {
-                    i++;
-                    inComment = 'block';
-                }
-            }
-        }
-
         var funcName = '';
 
         if (parent) {
@@ -160,10 +126,12 @@ function processNode(node, parent) {
             funcName: funcName
         };
 
+        var braceLocation = findFirstSymbol('{', functionDeclaration) + 1;
+
         var newFunctionDeclaration =
-            functionDeclaration.substr(0, i) +
+            functionDeclaration.substr(0, braceLocation) +
             'pg(' + id + ',arguments);' +
-            functionDeclaration.substr(i);
+            functionDeclaration.substr(braceLocation);
 
         outputFile += getFragment(codeLines, {
             start: lastSavedLoc,
@@ -207,6 +175,41 @@ function revertNode(node) {
                 line: node.loc.end.line + 1,
                 column: 0
             };
+        }
+    }
+}
+
+function findFirstSymbol(symbol, code) {
+    var inComment = false;
+
+    for (var i = 0; i < code.length; ++i) {
+        if (inComment) {
+
+            if (inComment === 'line') {
+                if (code[i] === '\n') {
+                    inComment = false;
+                }
+            } else if (inComment === 'block') {
+                if (code[i] === '*' && code[i + 1] === '/') {
+                    i++;
+                    inComment = false;
+                }
+            }
+
+        } else {
+            if (code[i] === symbol) {
+                return i;
+            }
+
+            if (code[i] === '/' && code[i + 1] === '/') {
+                i++;
+                inComment = 'line';
+            }
+
+            if (code[i] === '/' && code[i + 1] === '*') {
+                i++;
+                inComment = 'block';
+            }
         }
     }
 }
