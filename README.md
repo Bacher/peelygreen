@@ -7,7 +7,13 @@ CLI program for monitoring JS code execution.
 
 #### Bash:
 ```bash
-pg source.js
+pg.js source.js > processed.js
 
-cat source.js | pg > _source.js
+pg.js soruce.js -o processed.js
+
+pg.js -i source.js
+
+pg.js -i -r source.js
+
+cat source.js | pg > processed.js
 ```
