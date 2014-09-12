@@ -1,4 +1,8 @@
-var b = function originalName() {pg(1,arguments);
+var b = function originalName()/*dd*/
+//ddd
+{pg(1,arguments);//
+    // * Hell
+    // * d
     var href = document.location.href;
 };
 

@@ -31,7 +31,11 @@ function pg(id, args) {
             var tickIndicator;
 
             if (isFirstConsoleLog) {
-                tickIndicator = '⎡';//'⌜';
+                if (i === pg.frameQueue.length - 1) {
+                    tickIndicator = '[';
+                } else {
+                    tickIndicator = '⎡';
+                }
             } else if (i === pg.frameQueue.length - 1) {
                 tickIndicator = '⎣';
             } else {
@@ -49,5 +53,5 @@ function pg(id, args) {
 }
 
 pg.timeout = null;
-pg.spyFunctions = "REPLACE_THIS";
+pg.spyFunctions = 'REPLACE_THIS';
 pg.frameQueue = [];

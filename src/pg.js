@@ -102,9 +102,38 @@ function processNode(node, parent) {
             end: node.body.body[0].loc.start
         });
 
-        var i = functionDeclaration.length - 1;
-        while (/\s/.test(functionDeclaration.charAt(i))) {
-            i--;
+        var inComment = false;
+
+        for (var i = 0; i < functionDeclaration.length; ++i) {
+            if (inComment) {
+
+                if (inComment === 'line') {
+                    if (functionDeclaration[i] === '\n') {
+                        inComment = false;
+                    }
+                } else if (inComment === 'block') {
+                    if (functionDeclaration[i] === '*' && functionDeclaration[i + 1] === '/') {
+                        i++;
+                        inComment = false;
+                    }
+                }
+
+            } else {
+                if (functionDeclaration[i] === '{') {
+                    i++;
+                    break;
+                }
+
+                if (functionDeclaration[i] === '/' && functionDeclaration[i + 1] === '/') {
+                    i++;
+                    inComment = 'line';
+                }
+
+                if (functionDeclaration[i] === '/' && functionDeclaration[i + 1] === '*') {
+                    i++;
+                    inComment = 'block';
+                }
+            }
         }
 
         var funcName = '';
@@ -132,9 +161,9 @@ function processNode(node, parent) {
         };
 
         var newFunctionDeclaration =
-            functionDeclaration.substr(0, i + 1) +
+            functionDeclaration.substr(0, i) +
             'pg(' + id + ',arguments);' +
-            functionDeclaration.substr(i + 1);
+            functionDeclaration.substr(i);
 
         outputFile += getFragment(codeLines, {
             start: lastSavedLoc,
