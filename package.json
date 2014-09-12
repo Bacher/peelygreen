@@ -1,8 +1,14 @@
 {
   "name": "peelygreen",
-  "version": "0.0.0",
-  "description": "Online monitoring for JS code execution",
-  "main": "index.js",
+  "version": "0.0.1",
+  "description": "Monitoring for JS code execution",
+  "main": "src/pg.js",
+  "bin": {
+      "pg": "pg.js"
+  },
+  "directories": {
+    "test": "test"
+  },
   "scripts": {
     "test": "mocha test/*.spec.js"
   },
@@ -18,7 +24,10 @@
     "debugging",
     "monitoring"
   ],
-  "author": "Bacher",
+  "author": {
+    "name": "Bacher",
+    "email": "bacherko@gmail.com"
+  },
   "license": "GPL v2",
   "bugs": {
     "url": "https://github.com/Bacher/peelygreen/issues"
