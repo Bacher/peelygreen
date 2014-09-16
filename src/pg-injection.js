@@ -1,4 +1,8 @@
 function pg(id, args) {
+    if (!pg.frameQueue) {
+        pg.frameQueue = [];
+    }
+
     clearTimeout(pg.timeout);
 
     pg.frameQueue.push({
@@ -54,4 +58,3 @@ function pg(id, args) {
 
 pg.timeout = null;
 pg.spyFunctions = 'REPLACE_THIS';
-pg.frameQueue = [];
